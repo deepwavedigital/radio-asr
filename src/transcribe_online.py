@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import copy
+import math
 import pathlib
 import time
 import wave
@@ -221,12 +222,12 @@ for wav in audio_files:
         audio = np.frombuffer(audio_buf, dtype=np.int16)
         # Normalize to float32, range (-1.0, +1.0)
         audio = audio.astype(np.float32) * (1.0 / 2**15)
-        print(audio.shape)
 
-        # Clip to number of full ASR model input frames and reshape
-        num_model_frames = int(len(audio) / num_samples)
-        audio = audio[:num_samples*num_model_frames].reshape(
-            num_model_frames, num_samples)
+        # Pad to number of full ASR model input frames and reshape
+        num_model_frames = math.ceil(len(audio) / num_samples)
+        num_pad = num_model_frames * num_samples - len(audio)
+        audio = np.pad(audio, (0, num_pad), 'empty')
+        audio = audio.reshape(num_model_frames, num_samples)
         print(num_samples)
         print(audio.shape)
 
