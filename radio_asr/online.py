@@ -72,10 +72,10 @@ class SpeechInference():
 
     def __init__(self,
                  sample_rate: float = 16000.0,
-                 frame_len: float = 8.0,
+                 frame_len: float = 4.0,
                  frame_overlap: float = 0.1,
                  offset: int = 0,
-                 rescore_beams: bool = False) -> None:
+                 rescore_beams: bool = True) -> None:
         """
         Args:
           sample_rate: sample rate of input signal, Hz
@@ -90,11 +90,11 @@ class SpeechInference():
         self.rescore_beams = rescore_beams
         # a) This line will download pre-trained QuartzNet15x5 model from
         #    NVIDIA's NGC cloud and instantiate it for you
-        self.asr_model = nemo_asr.models.EncDecCTCModel.from_pretrained(
-             model_name="QuartzNet15x5Base-En")
+        #self.asr_model = nemo_asr.models.EncDecCTCModel.from_pretrained(
+        #     model_name="QuartzNet15x5Base-En")
         # b) Load quartznet from a locally downloaded .nemo file
-        #self.asr_model = nemo_asr.models.EncDecCTCModel.restore_from(
-        #    "models/QuartzNet15x5NR-En.nemo")
+        self.asr_model = nemo_asr.models.EncDecCTCModel.restore_from(
+            "../models/QuartzNet15x5NR-En.nemo")
         # c) Use a conformer CTC model (download from NGC cloud)
         #self.asr_model = nemo_asr.models.EncDecCTCModelBPE.from_pretrained(
         #    model_name="stt_en_conformer_ctc_large")
@@ -201,7 +201,7 @@ class SpeechInference():
         if self.rescore_beams:
             scores = self._rescore(beams, max_length=64, rescore_alpha=0.4, rescore_beta=0.4)
             best_idx = np.argmax(scores[:len(beams)].cpu().numpy())
-            print(f"scores: {scores}, BEST: {best_idx}")
+            # print(f"scores: {scores}, BEST: {best_idx}")
             decoded = beams[best_idx][1]
         else:
             # Just use the top beam from the acoustic model
