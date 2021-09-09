@@ -48,5 +48,9 @@ pip install opencc-python-reimplemented
 ### Then, finally, add NeMo to our environment
 pip install ./NeMo
 
+# One last step: build/install the external libraries necessary to run
+# the beam search decoders & language models.
+(cd NeMo; scripts/asr_language_modeling/ngram_lm/install_beamsearch_decoders.sh)
+
 ### Now you SHOULD be done and can run the transcription examples. Whew!
 
