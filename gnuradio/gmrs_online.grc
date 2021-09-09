@@ -176,7 +176,7 @@ blocks:
     bus_structure: null
     coordinate: [704, 252.0]
     rotation: 0
-    state: true
+    state: disabled
 - name: analog_pwr_squelch_xx_0
   id: analog_pwr_squelch_xx
   parameters:
@@ -196,6 +196,24 @@ blocks:
     bus_structure: null
     coordinate: [504, 252.0]
     rotation: 0
+    state: disabled
+- name: blocks_wavfile_source_0
+  id: blocks_wavfile_source
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    file: /home/dan/repo/asr/radio-asr/data/gmrs_lincoln.wav
+    maxoutbuf: '0'
+    minoutbuf: '8192'
+    nchan: '1'
+    repeat: 'True'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [832, 480.0]
+    rotation: 0
     state: true
 - name: epy_block_0
   id: epy_block
@@ -213,13 +231,17 @@ blocks:
       \       out_sig=[]  # no output port, this is a sink\n        )\n        # Allow\
       \ user of block to pass in the sample rate (since this is set in\n        #\
       \ the flowgraph itself).\n        self.sample_rate = sample_rate\n        self.engine\
-      \ = SpeechInference(sample_rate=sample_rate)\n\n        if sample_rate != 16000.0:\n\
-      \            raise ValueError(\"Only 16kHz sample rates are supported by this\
-      \ model\")\n        \n    def work(self, input_items, output_items):\n     \
-      \   assert len(input_items) >= speech.n_frame_len\n        text = self.engine.transcribe(\n\
-      \            input_items[:self.engine.n_frame_len])\n        print(text.strip())\n\
-      \        return self.engine.n_frame_len  # number of float32 samples processed\n\
-      \n"
+      \ = SpeechInference(sample_rate=sample_rate)\n        self.buffer = np.zeros(self.engine.n_frame_len)\n\
+      \        self.pos = 0\n        if sample_rate != 16000.0:\n            raise\
+      \ ValueError(\"Only 16kHz sample rates are supported by this model\")\n    \
+      \    \n    def work(self, input_items, output_items):\n        data = input_items[0]\n\
+      \        n_samples = len(data)\n        if self.pos + n_samples < self.engine.n_frame_len:\
+      \ # Buffer data\n            self.buffer[self.pos:self.pos+n_samples] = data\n\
+      \            self.pos += n_samples\n            return n_samples\n        else:\n\
+      \            n_processed = self.engine.n_frame_len - self.pos\n            self.buffer[self.pos:]\
+      \ = data[:n_processed]\n            text = self.engine.transcribe(self.buffer)\n\
+      \            print(\"Transcribed: \" + text.strip())\n            self.pos =\
+      \ 0\n            return n_processed\n"
     affinity: ''
     alias: ''
     comment: ''
@@ -233,7 +255,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [928, 276.0]
+    coordinate: [1088, 304.0]
     rotation: 0
     state: true
 - name: low_pass_filter_0
@@ -259,7 +281,7 @@ blocks:
     bus_structure: null
     coordinate: [288, 228.0]
     rotation: 0
-    state: enabled
+    state: disabled
 - name: qtgui_freq_sink_x_0
   id: qtgui_freq_sink_x
   parameters:
@@ -340,7 +362,7 @@ blocks:
     bus_structure: null
     coordinate: [504, 364.0]
     rotation: 0
-    state: enabled
+    state: disabled
 - name: soapy_custom_source_0
   id: soapy_custom_source
   parameters:
@@ -383,11 +405,12 @@ blocks:
     bus_structure: null
     coordinate: [40, 260.0]
     rotation: 0
-    state: true
+    state: disabled
 
 connections:
 - [analog_nbfm_rx_0, '0', epy_block_0, '0']
 - [analog_pwr_squelch_xx_0, '0', analog_nbfm_rx_0, '0']
+- [blocks_wavfile_source_0, '0', epy_block_0, '0']
 - [low_pass_filter_0, '0', analog_pwr_squelch_xx_0, '0']
 - [low_pass_filter_0, '0', qtgui_freq_sink_x_0, '0']
 - [soapy_custom_source_0, '0', low_pass_filter_0, '0']
