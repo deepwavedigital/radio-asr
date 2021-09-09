@@ -204,22 +204,22 @@ blocks:
       \ GRC will instantiate the first class it finds\nto get ports and parameters\
       \ of your block. The arguments to __init__  will\nbe the parameters. All of\
       \ them are required to have default values!\n\"\"\"\n\nimport numpy as np\n\
-      from gnuradio import gr\n\n# TODO: Import existing ASR code here (from transcribe_online.py)\n\
-      \n\nclass blk(gr.sync_block):  # sinks are derived from sync blocks\n\n    def\
-      \ __init__(self, sample_rate=16e3):  # only default arguments here\n       \
-      \ \"\"\"arguments to this function show up as parameters in GRC\"\"\"\n    \
-      \    gr.sync_block.__init__(\n            self,\n            name='Embedded\
-      \ ASR Block',  # will show up in GRC\n            in_sig=[np.float32],  # input\
-      \ is a float32 stream\n            out_sig=[]  # no output port, this is a sink\n\
-      \        )\n        # Allow user of block to pass in the sample rate (since\
-      \ this is set in\n        # the flowgraph itself).\n        self.sample_rate\
-      \ = sample_rate\n        # TODO: Initialization code from transcribe_online\
-      \ goes here (e.g.,\n        # create a SpeechInference object using the sample_rate).\n\
-      \n    def work(self, input_items, output_items):\n        # TODO: Run the model\
-      \ here. Return the number of samples to GNU Radio\n        # that were processed.\
-      \ There is likely some math involved here with the\n        # windowing parameters.\n\
-      \        # TODO: Print any words the model detects.\n        return 0  # number\
-      \ of float32 samples processed\n"
+      from gnuradio import gr\n\nfrom radio_asr.online import SpeechInference\n\n\
+      class blk(gr.sync_block):  # sinks are derived from sync blocks\n\n    def __init__(self,\
+      \ sample_rate=16e3):  # only default arguments here\n        \"\"\"arguments\
+      \ to this function show up as parameters in GRC\"\"\"\n        gr.sync_block.__init__(\n\
+      \            self,\n            name='Embedded ASR Block',  # will show up in\
+      \ GRC\n            in_sig=[np.float32],  # input is a float32 stream\n     \
+      \       out_sig=[]  # no output port, this is a sink\n        )\n        # Allow\
+      \ user of block to pass in the sample rate (since this is set in\n        #\
+      \ the flowgraph itself).\n        self.sample_rate = sample_rate\n        self.engine\
+      \ = SpeechInference(sample_rate=sample_rate)\n\n        if sample_rate != 16000.0:\n\
+      \            raise ValueError(\"Only 16kHz sample rates are supported by this\
+      \ model\")\n        \n    def work(self, input_items, output_items):\n     \
+      \   assert len(input_items) >= speech.n_frame_len\n        text = self.engine.transcribe(\n\
+      \            input_items[:self.engine.n_frame_len])\n        print(text.strip())\n\
+      \        return self.engine.n_frame_len  # number of float32 samples processed\n\
+      \n"
     affinity: ''
     alias: ''
     comment: ''
