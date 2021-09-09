@@ -206,7 +206,14 @@ class SpeechInference():
         else:
             # Just use the top beam from the acoustic model
             decoded = beams[0][1]
-        return decoded  #[:len(decoded)-offset]
+
+        # In high-noise environments with no speaker, the model outputs sequences
+        # of one-character words, all vowels. If that's all we have, we have silence.
+        chars = set('aeiou _')
+        if all((c in chars) for c in decoded):
+            return ""
+        else:
+            return decoded  #[:len(decoded)-offset]
 
     def _rescore(self, beams, max_length, rescore_alpha, rescore_beta):
         # Create input to rescorer
