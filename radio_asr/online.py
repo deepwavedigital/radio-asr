@@ -9,7 +9,6 @@ import wave
 import numpy as np
 import omegaconf
 import torch
-import fast_ctc_decode
 
 # NeMo's "core" package
 from nemo.core.classes import IterableDataset
@@ -26,9 +25,6 @@ from nemo.collections.nlp.models.language_modeling import TransformerLMModel
 import logging
 logging.getLogger('nemo_logger').setLevel(logging.ERROR)
 
-def softmax(x):
-    e = np.exp(x - np.max(x))
-    return e / e.sum(axis=-1).reshape([x.shape[0], 1])
 
 class AudioDataLayer(IterableDataset):
     @property
