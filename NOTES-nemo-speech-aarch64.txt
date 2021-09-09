@@ -24,8 +24,6 @@ sudo apt-get install libopenblas-base libopenmpi-dev
 git clone https://github.com/NVIDIA/NeMo
 (cd NeMo; git checkout v1.3.0)
 
-# @FIXME: @typecheck patch for neural rescoring model, see if we need to do this on aarch64
-
 # Basic requirements for NeMo
 (cd NeMo/requirements; pip install -r requirements.txt)
 (cd NeMo/requirements; pip install -r requirements_asr.txt)
@@ -35,9 +33,9 @@ mamba install cython h5py  # pip can't build this correctly on aarch64-conda
 
 # model depends on a c++ package that's in conda, but not built for linux-aarch64.
 # We could clone the feedstock and build it ourselves, but it also doesn't build cleanly.
-# It's for Japanese language support which we don't need right now... so we remove
-# the following line from the "requirements_nlp.txt" file: 'sacrebleu[ja]', then
-# run the below line.
+# It's for Japanese language support which we don't need right now... so we remove it.
+(cd NeMo; patch -p1 < ../nemo-1.3.patch)
+
 (cd NeMo/requirements; pip install -r requirements_nlp.txt)
 
 # The NLP code installs another package that has a C++ dependency that we don't have,
