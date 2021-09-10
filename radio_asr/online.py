@@ -75,6 +75,7 @@ class SpeechInference():
                  frame_len: float = 4.0,
                  frame_overlap: float = 0.1,
                  offset: int = 0,
+                 beam_width: int = 24,
                  rescore_beams: bool = True) -> None:
         """
         Args:
@@ -82,12 +83,17 @@ class SpeechInference():
           frame_len: frame's duration, sec
           frame_overlap: duration of overlaps before/after current frame, sec
           offset: number of symbols to drop for smooth streaming
+          beam_width: number of candidates to keep in beam search decoding
+          rescore_beams: Whether to use the language model neural network
+                         to rescore each candidate text
         """
         self.sample_rate = sample_rate
         self.frame_len = frame_len
         self.frame_overlap = frame_overlap
         self.offset = offset
+        self.beam_width = beam_width
         self.rescore_beams = rescore_beams
+
         # a) This line will download pre-trained QuartzNet15x5 model from
         #    NVIDIA's NGC cloud and instantiate it for you
         #self.asr_model = nemo_asr.models.EncDecCTCModel.from_pretrained(
@@ -138,7 +144,6 @@ class SpeechInference():
         self.asr_model = self.asr_model.to(self.asr_model.device)
 
         # Create the beam search decoder
-        self.beam_width = 32
         self.beam_search_lm = nemo_asr.modules.BeamSearchDecoderWithLM(
             vocab=list(cfg.decoder.vocabulary),
             beam_width=self.beam_width,
