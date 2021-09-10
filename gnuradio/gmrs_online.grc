@@ -234,14 +234,25 @@ blocks:
       \ = SpeechInference(sample_rate=sample_rate)\n        self.buffer = np.zeros(self.engine.n_frame_len)\n\
       \        self.pos = 0\n        if sample_rate != 16000.0:\n            raise\
       \ ValueError(\"Only 16kHz sample rates are supported by this model\")\n    \
-      \    \n    def work(self, input_items, output_items):\n        data = input_items[0]\n\
+      \    \n        self.buf_duration = self.engine.n_frame_len / self.sample_rate\n\
+      \        self.benchmark = False  # For performance debugging\n            \n\
+      \    def work(self, input_items, output_items):\n        data = input_items[0]\n\
       \        n_samples = len(data)\n        if self.pos + n_samples < self.engine.n_frame_len:\
       \ # Buffer data\n            self.buffer[self.pos:self.pos+n_samples] = data\n\
       \            self.pos += n_samples\n            return n_samples\n        else:\n\
       \            n_processed = self.engine.n_frame_len - self.pos\n            self.buffer[self.pos:]\
-      \ = data[:n_processed]\n            text = self.engine.transcribe(self.buffer)\n\
-      \            print(\"Transcribed: \" + text.strip())\n            self.pos =\
-      \ 0\n            return n_processed\n"
+      \ = data[:n_processed]\n\n            # Measure transcription time\n       \
+      \     t_start = time.time()\n            text = self.engine.transcribe(self.buffer)\n\
+      \            t_end = time.time()\n            t_duration = t_end - t_start\n\
+      \            ratio = self.buf_duration / t_duration\n            \n        \
+      \    text = text.strip()\n\n            if len(text):\n                self.new_line\
+      \ = False\n                print(\" \" + text, end='', flush=True)\n       \
+      \     elif not self.new_line:\n                print(\"\", end='\\n', flush=True)\n\
+      \                self.new_line = True\n\n            if self.benchmark:    \
+      \            \n                now = datetime.datetime.now()\n             \
+      \   print(f\"[{now}] Transcribed {self.buf_duration:.2f}sec in {t_duration:.2f}sec\
+      \ ({ratio:.2f}x): '{text}'\")\n\n            self.pos = 0\n            return\
+      \ n_processed\n"
     affinity: ''
     alias: ''
     comment: ''
