@@ -149,7 +149,7 @@ blocks:
     start: '-100'
     step: '1'
     stop: '100'
-    value: '-50'
+    value: '-85'
     widget: counter_slider
   states:
     bus_sink: false
@@ -176,7 +176,7 @@ blocks:
     bus_structure: null
     coordinate: [704, 252.0]
     rotation: 0
-    state: disabled
+    state: enabled
 - name: analog_pwr_squelch_xx_0
   id: analog_pwr_squelch_xx
   parameters:
@@ -196,7 +196,7 @@ blocks:
     bus_structure: null
     coordinate: [504, 252.0]
     rotation: 0
-    state: disabled
+    state: enabled
 - name: blocks_wavfile_source_0
   id: blocks_wavfile_source
   parameters:
@@ -214,7 +214,7 @@ blocks:
     bus_structure: null
     coordinate: [832, 480.0]
     rotation: 0
-    state: true
+    state: disabled
 - name: epy_block_0
   id: epy_block
   parameters:
@@ -233,17 +233,17 @@ blocks:
       \ this is set in\n        # the flowgraph itself).\n        self.sample_rate\
       \ = sample_rate\n        self.engine = SpeechInference(sample_rate=sample_rate)\n\
       \        self.buffer = np.zeros(self.engine.n_frame_len)\n        self.pos =\
-      \ 0\n        if sample_rate != 16000.0:\n            raise ValueError(\"Only\
-      \ 16kHz sample rates are supported by this model\")\n        \n        self.buf_duration\
-      \ = self.engine.n_frame_len / self.sample_rate\n        self.benchmark = False\
-      \  # For performance debugging\n            \n    def work(self, input_items,\
-      \ output_items):\n        data = input_items[0]\n        n_samples = len(data)\n\
-      \        if self.pos + n_samples < self.engine.n_frame_len: # Buffer data\n\
-      \            self.buffer[self.pos:self.pos+n_samples] = data\n            self.pos\
-      \ += n_samples\n            return n_samples\n        else:\n            n_processed\
-      \ = self.engine.n_frame_len - self.pos\n            self.buffer[self.pos:] =\
-      \ data[:n_processed]\n\n            # Measure transcription time\n         \
-      \   t_start = time.time()\n            text = self.engine.transcribe(self.buffer)\n\
+      \ 0\n        self.new_line = True\n        if sample_rate != 16000.0:\n    \
+      \        raise ValueError(\"Only 16kHz sample rates are supported by this model\"\
+      )\n        \n        self.buf_duration = self.engine.n_frame_len / self.sample_rate\n\
+      \        self.benchmark = False  # For performance debugging\n            \n\
+      \    def work(self, input_items, output_items):\n        data = input_items[0]\n\
+      \        n_samples = len(data)\n        if self.pos + n_samples < self.engine.n_frame_len:\
+      \ # Buffer data\n            self.buffer[self.pos:self.pos+n_samples] = data\n\
+      \            self.pos += n_samples\n            return n_samples\n        else:\n\
+      \            n_processed = self.engine.n_frame_len - self.pos\n            self.buffer[self.pos:]\
+      \ = data[:n_processed]\n\n            # Measure transcription time\n       \
+      \     t_start = time.time()\n            text = self.engine.transcribe(self.buffer)\n\
       \            t_end = time.time()\n            t_duration = t_end - t_start\n\
       \            ratio = self.buf_duration / t_duration\n            \n        \
       \    text = text.strip()\n\n            if len(text):\n                self.new_line\
@@ -293,7 +293,7 @@ blocks:
     bus_structure: null
     coordinate: [288, 228.0]
     rotation: 0
-    state: disabled
+    state: enabled
 - name: qtgui_freq_sink_x_0
   id: qtgui_freq_sink_x
   parameters:
@@ -417,7 +417,7 @@ blocks:
     bus_structure: null
     coordinate: [40, 260.0]
     rotation: 0
-    state: disabled
+    state: enabled
 
 connections:
 - [analog_nbfm_rx_0, '0', epy_block_0, '0']
