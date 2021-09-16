@@ -25,6 +25,7 @@ from nemo.collections.nlp.models.language_modeling import TransformerLMModel
 import logging
 logging.getLogger('nemo_logger').setLevel(logging.ERROR)
 
+model_location = pathlib.Path(__file__).parent.parent.resolve() / "models"
 
 class AudioDataLayer(IterableDataset):
     @property
@@ -100,7 +101,7 @@ class SpeechInference():
         #     model_name="QuartzNet15x5Base-En")
         # b) Load quartznet from a locally downloaded .nemo file
         self.asr_model = nemo_asr.models.EncDecCTCModel.restore_from(
-            "../models/QuartzNet15x5NR-En.nemo")
+            str(model_location / "QuartzNet15x5NR-En.nemo"))
         # c) Use a conformer CTC model (download from NGC cloud)
         #self.asr_model = nemo_asr.models.EncDecCTCModelBPE.from_pretrained(
         #    model_name="stt_en_conformer_ctc_large")
@@ -155,7 +156,7 @@ class SpeechInference():
 
         if self.rescore_beams:
             self.asr_lm_model = TransformerLMModel.restore_from(
-                "../models/asrlm_en_transformer_large_ls.nemo")
+                str(model_location / "asrlm_en_transformer_large_ls.nemo"))
         else:
             self.asr_lm_model = None
 
