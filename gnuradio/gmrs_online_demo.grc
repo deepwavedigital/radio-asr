@@ -1,0 +1,398 @@
+options:
+  parameters:
+    author: ''
+    catch_exceptions: 'True'
+    category: '[GRC Hier Blocks]'
+    cmake_opt: ''
+    comment: ''
+    copyright: ''
+    description: ''
+    gen_cmake: 'On'
+    gen_linking: dynamic
+    generate_options: qt_gui
+    hier_block_src_path: '.:'
+    id: gmrs_online
+    max_nouts: '0'
+    output_language: python
+    placement: (0,0)
+    qt_qss_theme: ''
+    realtime_scheduling: ''
+    run: 'True'
+    run_command: '{python} -u {filename}'
+    run_options: prompt
+    sizing_mode: fixed
+    thread_safe_setters: ''
+    title: ''
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [16, 12]
+    rotation: 0
+    state: enabled
+
+blocks:
+- name: audio_rate
+  id: variable
+  parameters:
+    comment: ''
+    value: int(samp_rate/dec1/dec2)
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [448, 12.0]
+    rotation: 0
+    state: enabled
+- name: dec1
+  id: variable
+  parameters:
+    comment: ''
+    value: '35'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [288, 12]
+    rotation: 0
+    state: enabled
+- name: dec2
+  id: variable
+  parameters:
+    comment: ''
+    value: '8'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [368, 12.0]
+    rotation: 0
+    state: enabled
+- name: freq_mhz
+  id: variable_qtgui_chooser
+  parameters:
+    comment: ''
+    gui_hint: ''
+    label: Channel
+    label0: 'Null'
+    label1: '1'
+    label2: '2'
+    label3: ''
+    label4: ''
+    labels: '["1", "2", "3", "4", "5", "6", "7"]'
+    num_opts: '0'
+    option0: '0'
+    option1: 462.564e6
+    option2: 462.764e6
+    option3: '3'
+    option4: '4'
+    options: '[462.5625, 462.5875, 462.6125, 462.6375, 462.6625, 462.6875, 462.7125]'
+    orient: Qt.QHBoxLayout
+    type: real
+    value: '462.5625'
+    widget: radio_buttons
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [544, 12.0]
+    rotation: 0
+    state: enabled
+- name: samp_rate
+  id: variable
+  parameters:
+    comment: ''
+    value: 4.48e6
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [192, 12]
+    rotation: 0
+    state: enabled
+- name: thresh
+  id: variable_qtgui_entry
+  parameters:
+    comment: ''
+    gui_hint: ''
+    label: Threshold (dB)
+    type: real
+    value: '-30'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [720, 12.0]
+    rotation: 0
+    state: true
+- name: analog_nbfm_rx_0
+  id: analog_nbfm_rx
+  parameters:
+    affinity: ''
+    alias: ''
+    audio_rate: audio_rate
+    comment: ''
+    max_dev: 5e3
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    quad_rate: int(samp_rate / dec1)
+    tau: 75e-6
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [704, 252.0]
+    rotation: 0
+    state: enabled
+- name: analog_pwr_squelch_xx_0
+  id: analog_pwr_squelch_xx
+  parameters:
+    affinity: ''
+    alias: ''
+    alpha: 1e-2
+    comment: ''
+    gate: 'False'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    ramp: '0'
+    threshold: thresh
+    type: complex
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [504, 252.0]
+    rotation: 0
+    state: enabled
+- name: epy_block_0
+  id: epy_block
+  parameters:
+    _source_code: "\"\"\"\nEmbedded Python Blocks:\n\nEach time this file is saved,\
+      \ GRC will instantiate the first class it finds\nto get ports and parameters\
+      \ of your block. The arguments to __init__  will\nbe the parameters. All of\
+      \ them are required to have default values!\n\"\"\"\n\nimport datetime\nimport\
+      \ time\n\nimport numpy as np\nfrom gnuradio import gr\n\n\nclass blk(gr.sync_block):\
+      \  # sinks are derived from sync blocks\n\n    def __init__(self, sample_rate=16e3):\
+      \  # only default arguments here\n        \"\"\"arguments to this function show\
+      \ up as parameters in GRC\"\"\"\n        gr.sync_block.__init__(\n         \
+      \   self,\n            name='Embedded ASR Block',  # will show up in GRC\n \
+      \           in_sig=[np.float32],  # input is a float32 stream\n            out_sig=[]\
+      \  # no output port, this is a sink\n        )\n\n        self.benchmark = False\
+      \  # For performance debugging\n\n        # Allow user of block to pass in the\
+      \ sample rate (since this is set in\n        # the flowgraph itself).\n    \
+      \    self.sample_rate = sample_rate\n        self.engine = None\n        self.new_line\
+      \ = True\n        if sample_rate != 16000.0:\n            raise ValueError(\"\
+      Only 16kHz sample rates are supported by this model\")\n\n    def start(self):\n\
+      \        from radio_asr.online import SpeechInference\n        if self.engine:\n\
+      \            del self.engine\n        print(\"Creating and initializing speech\
+      \ inference model.\")\n        self.engine = SpeechInference(sample_rate=self.sample_rate)\n\
+      \        self.buffer = np.zeros(self.engine.n_frame_len)\n        self.pos =\
+      \ 0\n        self.buf_duration = self.engine.n_frame_len / self.sample_rate\n\
+      \        print(\"Finished initializing speech inference model.\")\n        return\
+      \ True\n            \n    def work(self, input_items, output_items):\n     \
+      \   data = input_items[0]\n        n_samples = len(data)\n        if self.pos\
+      \ + n_samples < self.engine.n_frame_len: # Buffer data\n            self.buffer[self.pos:self.pos+n_samples]\
+      \ = data\n            self.pos += n_samples\n            return n_samples\n\
+      \        else:\n            n_processed = self.engine.n_frame_len - self.pos\n\
+      \            self.buffer[self.pos:] = data[:n_processed]\n\n            # Measure\
+      \ transcription time\n            t_start = time.time()\n            text =\
+      \ self.engine.transcribe(self.buffer)\n            t_end = time.time()\n   \
+      \         t_duration = t_end - t_start\n            ratio = self.buf_duration\
+      \ / t_duration\n            \n            text = text.strip()\n\n          \
+      \  if len(text):\n                self.new_line = False\n                print(\"\
+      \ \" + text, end='', flush=True)\n            elif not self.new_line:\n    \
+      \            print(\"\", end='\\n', flush=True)\n                self.new_line\
+      \ = True\n\n            if self.benchmark:                \n               \
+      \ now = datetime.datetime.now()\n                print(f\"[{now}] Transcribed\
+      \ {self.buf_duration:.2f}sec in {t_duration:.2f}sec ({ratio:.2f}x): '{text}'\"\
+      )\n\n            self.pos = 0\n            return n_processed\n"
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    sample_rate: audio_rate
+  states:
+    _io_cache: ('Embedded ASR Block', 'blk', [('sample_rate', '16000.0')], [('0',
+      'float', 1)], [], 'arguments to this function show up as parameters in GRC',
+      ['sample_rate'])
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [976, 276.0]
+    rotation: 0
+    state: enabled
+- name: low_pass_filter_0
+  id: low_pass_filter
+  parameters:
+    affinity: ''
+    alias: ''
+    beta: '6.76'
+    comment: ''
+    cutoff_freq: 6e3
+    decim: dec1
+    gain: '1'
+    interp: '1'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    samp_rate: samp_rate
+    type: fir_filter_ccf
+    width: 2e3
+    win: window.WIN_HAMMING
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [288, 228.0]
+    rotation: 0
+    state: enabled
+- name: qtgui_time_sink_x_0_0
+  id: qtgui_time_sink_x
+  parameters:
+    affinity: ''
+    alias: ''
+    alpha1: '1.0'
+    alpha10: '1.0'
+    alpha2: '1.0'
+    alpha3: '1.0'
+    alpha4: '1.0'
+    alpha5: '1.0'
+    alpha6: '1.0'
+    alpha7: '1.0'
+    alpha8: '1.0'
+    alpha9: '1.0'
+    autoscale: 'False'
+    axislabels: 'True'
+    color1: blue
+    color10: dark blue
+    color2: red
+    color3: green
+    color4: black
+    color5: cyan
+    color6: magenta
+    color7: yellow
+    color8: dark red
+    color9: dark green
+    comment: ''
+    ctrlpanel: 'True'
+    entags: 'False'
+    grid: 'False'
+    gui_hint: ''
+    label1: Signal 1
+    label10: Signal 10
+    label2: Signal 2
+    label3: Signal 3
+    label4: Signal 4
+    label5: Signal 5
+    label6: Signal 6
+    label7: Signal 7
+    label8: Signal 8
+    label9: Signal 9
+    legend: 'False'
+    marker1: '-1'
+    marker10: '-1'
+    marker2: '-1'
+    marker3: '-1'
+    marker4: '-1'
+    marker5: '-1'
+    marker6: '-1'
+    marker7: '-1'
+    marker8: '-1'
+    marker9: '-1'
+    name: '"Audio Signal"'
+    nconnections: '1'
+    size: '1024'
+    srate: audio_rate
+    stemplot: 'False'
+    style1: '1'
+    style10: '1'
+    style2: '1'
+    style3: '1'
+    style4: '1'
+    style5: '1'
+    style6: '1'
+    style7: '1'
+    style8: '1'
+    style9: '1'
+    tr_chan: '0'
+    tr_delay: '0'
+    tr_level: '0.0'
+    tr_mode: qtgui.TRIG_MODE_FREE
+    tr_slope: qtgui.TRIG_SLOPE_POS
+    tr_tag: '""'
+    type: float
+    update_time: '0.10'
+    width1: '1'
+    width10: '1'
+    width2: '1'
+    width3: '1'
+    width4: '1'
+    width5: '1'
+    width6: '1'
+    width7: '1'
+    width8: '1'
+    width9: '1'
+    ylabel: Amplitude
+    ymax: '1'
+    ymin: '-1'
+    yunit: '""'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [976, 356.0]
+    rotation: 0
+    state: true
+- name: soapy_custom_source_0
+  id: soapy_custom_source
+  parameters:
+    affinity: ''
+    agc0: 'True'
+    agc1: 'False'
+    alias: ''
+    antenna0: RX1
+    antenna1: ''
+    bandwidth0: '0'
+    bandwidth1: '0'
+    center_freq0: freq_mhz*1e6
+    center_freq1: '0'
+    comment: ''
+    dc_offset0: '0'
+    dc_offset1: '0'
+    dc_removal0: 'False'
+    dc_removal1: 'True'
+    dev_args: ''
+    driver: SoapyAIRT
+    freq_correction0: '0'
+    freq_correction1: '0'
+    gain0: '10'
+    gain1: '0'
+    iq_balance0: '0'
+    iq_balance1: '0'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    nchan: '1'
+    samp_rate: samp_rate
+    settings0: ''
+    settings1: ''
+    stream_args: ''
+    tune_args0: ''
+    tune_args1: ''
+    type: fc32
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [40, 260.0]
+    rotation: 0
+    state: enabled
+
+connections:
+- [analog_nbfm_rx_0, '0', epy_block_0, '0']
+- [analog_nbfm_rx_0, '0', qtgui_time_sink_x_0_0, '0']
+- [analog_pwr_squelch_xx_0, '0', analog_nbfm_rx_0, '0']
+- [low_pass_filter_0, '0', analog_pwr_squelch_xx_0, '0']
+- [soapy_custom_source_0, '0', low_pass_filter_0, '0']
+
+metadata:
+  file_format: 1

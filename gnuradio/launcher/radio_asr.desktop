@@ -1,0 +1,12 @@
+#!/usr/bin/env xdg-open
+
+[Desktop Entry]
+Version=1.0
+Type=Application
+Terminal=false
+Name[en_US]=Radio ASR
+Exec=bash -c "source /export/radio-asr.git/gnuradio/launcher/launch-radio-asr"
+Comment[en_US]=Radio ASR Software
+Name=Radio ASR Demo
+Comment=Radio ASR Software
+Icon=/usr/share/icons/deepwave_icon.png
