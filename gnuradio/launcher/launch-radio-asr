@@ -3,6 +3,10 @@
 RADIO_ASR_DIR="/export/radio-asr.git"
 CONDA_ENV_DIR="/export/conda-environments/nemo-1.3.0"
 
+export QT_AUTO_SCREEN_SCALE_FACTOR=1
+export QT_SCALE_FACTOR=1.5
+export GDK_DPI_SCALE=1.5
+
 source /etc/profile.d/conda.sh
 conda activate ${CONDA_ENV_DIR}
 cd ${RADIO_ASR_DIR}/gnuradio
