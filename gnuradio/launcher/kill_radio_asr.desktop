@@ -1,0 +1,12 @@
+#!/usr/bin/env xdg-open
+
+[Desktop Entry]
+Version=1.0
+Type=Application
+Terminal=false
+Name[en_US]=Reset Radio ASR
+Exec=bash -c "source /export/radio-asr.git/gnuradio/launcher/kill_gmrs_online_demo"
+Comment[en_US]=Reset Radio ASR Software
+Name=Reset ASR Demo
+Comment=Reset Radio ASR Software
+Icon=/usr/share/icons/deepwave_icon.png

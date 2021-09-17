@@ -1,0 +1,5 @@
+#! /bin/bash
+
+pid_to_kill="$(pgrep -f gmrs_online_demo.py)"
+kill -9 $pid_to_kill
+
